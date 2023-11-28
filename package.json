@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "dev": "wrangler dev src/index.ts --test-scheduled",
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "generate": "drizzle-kit generate:sqlite --schema=src/model/index.ts",
+    "up": "drizzle-kit up:sqlite --schema=src/model/index.ts",
+    "migrate": "wrangler d1 migrations apply jamie-ai --local",
+    "migrate:prod": "wrangler d1 migrations apply jamie-ai"
+  },
+  "dependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
+    "drizzle-orm": "^0.29.0",
+    "hono": "^3.10.1",
+    "jose": "^5.1.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20230914.0",
+    "drizzle-kit": "^0.20.4",
+    "wrangler": "^3.15.0"
+  }
+}
