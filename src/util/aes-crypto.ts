@@ -12,7 +12,7 @@ class AESCrypto {
     );
   }
 
-  static async encrypt(text: string, key: CryptoKey): Promise<ArrayBuffer> {
+  static async encrypt(text: string, key: CryptoKey): Promise<string> {
     const iv = crypto.getRandomValues(new Uint8Array(AESCrypto.ivLength));
     const encodedText = new TextEncoder().encode(text);
 
@@ -30,13 +30,21 @@ class AESCrypto {
     combined.set(iv);
     combined.set(encryptedArray, iv.length);
 
-    return combined.buffer;
+    const encryptedString = btoa(
+      new Uint8Array(combined.buffer).reduce(
+        (data, byte) => data + String.fromCharCode(byte),
+        ''
+      )
+    );
+
+    return encryptedString;
   }
 
-  static async decrypt(
-    encrypted: ArrayBuffer,
-    key: CryptoKey
-  ): Promise<string> {
+  static async decrypt(base64input: string, key: CryptoKey): Promise<string> {
+    const encrypted = Uint8Array.from(atob(base64input), (c) =>
+      c.charCodeAt(0)
+    );
+
     const iv = new Uint8Array(encrypted, 0, AESCrypto.ivLength);
     const encryptedData = new Uint8Array(encrypted, AESCrypto.ivLength);
 

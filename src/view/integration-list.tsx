@@ -1,27 +1,41 @@
 import type { FC } from 'hono/jsx';
 
-import { integrationList } from '@/integration/list';
+import { type CoreIntegration } from '@/interface/integration';
+import { Layout } from './layout';
 
 interface IntegrationListProps {
-  integrations: IntegrationListItemProps[];
+  integrations: CoreIntegration[];
 }
 
-const IntegrationList: FC<IntegrationListProps> = ({ integrations }) => {
-  return (
-    <div>
-      <h1>Integration List</h1>
+const IntegrationList: FC<IntegrationListProps> = async ({ integrations }) => {
+  const integrationsPromise = await Promise.all(
+    integrations.map(async (integration) => {
+      return {
+        id: integration.id,
+        name: integration.name,
+        description: integration.description,
+        connected: await integration.isConnected(),
+      };
+    })
+  );
 
-      <ul>
-        {Array.from(integrationList).map(([integrationId, integration]) => (
-          <IntegrationListItem
-            id={integrationId}
-            name={integration.name}
-            description={integration.description}
-            connected={false}
-          />
-        ))}
-      </ul>
-    </div>
+  return (
+    <Layout>
+      <div>
+        <h1>Integration List</h1>
+
+        <ul>
+          {integrationsPromise.map((integration) => (
+            <IntegrationListItem
+              id={integration.id}
+              name={integration.name}
+              description={integration.description}
+              connected={integration.connected}
+            />
+          ))}
+        </ul>
+      </div>
+    </Layout>
   );
 };
 

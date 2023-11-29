@@ -1,9 +1,22 @@
+import { AppContext } from '@/types';
+
+interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  scope: string;
+}
+
 class GoogleCalendarAuth {
-  constructor(
-    protected clientId: string,
-    protected clientSecret: string,
-    protected redirectUri: string
-  ) {}
+  protected clientId: string;
+  protected clientSecret: string;
+  protected redirectUri: string;
+
+  constructor(protected c: AppContext) {
+    this.clientId = c.env.GOOGLE_CLIENT_ID;
+    this.clientSecret = c.env.GOOGLE_CLIENT_SECRET;
+    this.redirectUri = c.env.GOOGLE_REDIRECT_URI;
+  }
 
   /**
    * Create redirect URL for authenticating with Google Calendar
@@ -40,7 +53,7 @@ class GoogleCalendarAuth {
       method: 'POST',
     });
 
-    return response.json();
+    return response.json() as Promise<TokenResponse>;
   }
 
   /**
@@ -60,6 +73,8 @@ class GoogleCalendarAuth {
       method: 'POST',
     });
 
-    return response.json();
+    return response.json() as Promise<TokenResponse>;
   }
 }
+
+export { GoogleCalendarAuth };

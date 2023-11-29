@@ -17,3 +17,12 @@ export interface EventParams {
     overrides: { method: string; minutes: number }[];
   };
 }
+
+export interface CalendarList {
+  items: {
+    id: string;
+    primary?: boolean;
+    timeZone: string;
+    summary: string;
+  }[];
+}

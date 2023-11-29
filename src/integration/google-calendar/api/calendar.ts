@@ -1,7 +1,28 @@
-import { type EventParams } from './types';
+import { CalendarList, type EventParams } from './types';
 
-export class GoogleCalendarEvent {
+export class GoogleCalendarApi {
   constructor(protected accessToken: string) {}
+
+  /**
+   * Retrieve a list of the user's calendars
+   *
+   * @returns
+   */
+  public async getCalendars() {
+    const url = new URL(
+      'https://www.googleapis.com/calendar/v3/users/me/calendarList'
+    );
+    const headers = new Headers();
+
+    headers.append('Authorization', `Bearer ${this.accessToken}`);
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers,
+    });
+
+    return response.json() as Promise<CalendarList>;
+  }
 
   /**
    * Create a new event in Google Calendar

@@ -4,7 +4,9 @@ import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { user } from './user';
 
 export const integration = sqliteTable('integration', {
-  id: text('id').$defaultFn(createId).primaryKey(),
+  id: text('id')
+    .$defaultFn(() => createId())
+    .primaryKey(),
   integrationId: text('integration_id').notNull(),
   userId: text('user_id')
     .references(() => user.id)

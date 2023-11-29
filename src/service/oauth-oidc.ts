@@ -1,5 +1,5 @@
 import { Context } from 'hono';
-import { Env } from '..';
+import { Env } from '@/types';
 import { createId } from '@paralleldrive/cuid2';
 import { getSignedCookie, setSignedCookie } from 'hono/cookie';
 import { IdCookie } from '@/util/id-cookie';
@@ -190,6 +190,7 @@ class OAuthOIDC {
     );
 
     if (!response.ok) {
+      console.error({ err: response.statusText });
       return null;
     }
 

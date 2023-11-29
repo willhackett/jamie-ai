@@ -1,4 +1,4 @@
-import { index, int, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { D1, createId, eq } from '@/service/d1';
 import { InferInsertModel, InferSelectModel, relations } from 'drizzle-orm';
 import { integration } from '.';
@@ -8,7 +8,9 @@ import { IdCookie } from '@/util/id-cookie';
 export const user = sqliteTable(
   'user',
   {
-    id: text('id').$defaultFn(createId).primaryKey(),
+    id: text('id')
+      .$defaultFn(() => createId())
+      .primaryKey(),
     email: text('email').notNull().unique(),
 
     given_name: text('given_name'),
@@ -76,7 +78,6 @@ export async function createUser(
   id: string,
   email: string
 ): Promise<{ id: string }> {
-  const idCookie = new IdCookie(c);
   const d1 = new D1(c);
 
   const createdUser = await d1.db
@@ -87,8 +88,6 @@ export async function createUser(
     })
     .returning({ id: user.id })
     .get();
-
-  await idCookie.setId(createdUser.id);
 
   return createdUser;
 }

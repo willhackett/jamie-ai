@@ -1,7 +1,7 @@
 import { type DrizzleD1Database, drizzle } from 'drizzle-orm/d1';
 import * as schema from '@/model';
 import { type Context } from 'hono';
-import { Env } from '@/index';
+import { type Env } from '@/types';
 export { createId } from '@paralleldrive/cuid2';
 
 export * as schema from '@/model';
