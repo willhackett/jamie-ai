@@ -33,8 +33,8 @@ export function db(c: Context) {
 export class D1 {
   public db: Database;
 
-  constructor(c: Context<{ Bindings: Env }>) {
-    this.db = drizzle(c.env.DB, {
+  constructor(d1: D1Database) {
+    this.db = drizzle(d1, {
       schema,
     });
   }

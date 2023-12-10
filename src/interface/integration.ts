@@ -35,7 +35,7 @@ abstract class CoreIntegration implements ICoreIntegration {
 
   constructor(c: Context) {
     this.c = c;
-    this.d1 = new D1(c);
+    this.d1 = new D1(c.env.DB);
   }
 
   /**

@@ -7,6 +7,13 @@ interface CalDavViewProps {
 }
 
 const CalDavView: FC<CalDavViewProps> = async ({ integration }) => {
+  const calendarList = await integration.getCalendarList();
+  const config = await integration.getPublicConfig();
+
+  const connected = !!config;
+
+  console.log(config);
+
   return (
     <Layout>
       <div>
@@ -16,24 +23,7 @@ const CalDavView: FC<CalDavViewProps> = async ({ integration }) => {
         </p>
         {connected ? (
           <>
-            <p>Connected to: {email}</p>
-            <form method="POST">
-              <select name="calendarId" value={selectedCalendarId}>
-                {calendarList.map((calendar) => (
-                  <option value={calendar.id}>{calendar.name}</option>
-                ))}
-              </select>
-
-              <label htmlFor="email">Email</label>
-              <input name="email" type="email" value={email} />
-              <label htmlFor="password">App-specific Password</label>
-              <input name="password" type="password" />
-              <small>Only provide the password if you wish to update it.</small>
-
-              <button name="action" value="update" type="submit">
-                Update
-              </button>
-            </form>
+            <CalDavDetailForm action="connect" {...config} />
             <form method="POST">
               <button
                 name="action"
@@ -46,60 +36,76 @@ const CalDavView: FC<CalDavViewProps> = async ({ integration }) => {
             </form>
           </>
         ) : (
-          <form method="POST">
-            <div class="mb-3">
-              <label for="hostname" className="form-label">
-                Hostname
-              </label>
-              <input
-                id="hostname"
-                name="hostname"
-                type="text"
-                class="form-control"
-              />
-            </div>
-            <div className="mb-3">
-              <label for="email" className="form-label">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                class="form-control"
-                autocomplete="off"
-              />
-            </div>
-            <div className="mb-3">
-              <label for="password" className="form-label">
-                App-specific Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autocomplete="off"
-                class="form-control"
-              />
-              <div id="emailHelp" class="form-text">
-                This will be stored encrypted.
-              </div>
-            </div>
-            <div>
-              <button
-                name="action"
-                value="connect"
-                type="submit"
-                class="btn btn-primary"
-              >
-                Connect
-              </button>
-            </div>
-          </form>
+          <CalDavDetailForm action="connect" />
         )}
       </div>
     </Layout>
   );
 };
 
-export { ICloudCalendarView };
+interface CalDavDetailFormProps {
+  username?: string;
+  hostname?: string;
+  action: 'connect' | 'update';
+}
+
+const CalDavDetailForm: FC<CalDavDetailFormProps> = ({
+  username,
+  hostname,
+  action,
+}) => (
+  <form method="POST">
+    <div class="mb-3">
+      <label for="hostname" className="form-label">
+        Hostname
+      </label>
+      <input
+        id="hostname"
+        name="hostname"
+        type="text"
+        class="form-control"
+        value={hostname}
+      />
+    </div>
+    <div className="mb-3">
+      <label for="username" className="form-label">
+        Email
+      </label>
+      <input
+        id="username"
+        name="username"
+        type="text"
+        class="form-control"
+        autocomplete="off"
+        value={username}
+      />
+    </div>
+    <div className="mb-3">
+      <label for="password" className="form-label">
+        App-specific Password
+      </label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="off"
+        class="form-control"
+      />
+      <div id="emailHelp" class="form-text">
+        This will be stored encrypted.
+      </div>
+    </div>
+    <div>
+      <button
+        name="action"
+        value={action}
+        type="submit"
+        class="btn btn-primary"
+      >
+        {action === 'connect' ? 'Connect' : 'Update'}
+      </button>
+    </div>
+  </form>
+);
+
+export { CalDavView };

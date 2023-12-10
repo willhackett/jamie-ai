@@ -5,6 +5,8 @@ import { authRoute, integrationRoute } from './route';
 import { HomePage } from './view/homepage';
 import { getUserFromContext } from './model';
 import { Env } from './types';
+import { Cron, MessageQueue, Email } from './controller';
+import { type EmailMessage } from 'cloudflare:email';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -25,16 +27,24 @@ app.route('/auth', authRoute);
 
 export default {
   fetch: app.fetch,
-  async scheduled(
-    event: ScheduledEvent,
-    env: Env,
-    ctx: ExecutionContext
-  ): Promise<void> {
-    console.log('scheduled');
+  async email(message: ForwardableEmailMessage, env: Env): Promise<void> {
+    const emailMessage = new Email(env);
+
+    await emailMessage.process({
+      from: message.from,
+      to: message.to,
+      headers: message.headers,
+      raw: message.raw,
+    });
+  },
+  async scheduled(event: ScheduledEvent, env: Env): Promise<void> {
+    const cron = new Cron(env);
+
+    await cron.process(event);
   },
   async queue(batch: MessageBatch<Error>, env: Env): Promise<void> {
-    // Do something with messages in the batch
-    // i.e. write to R2 storage, D1 database, or POST to an external API
-    // You can also iterate over each message in the batch by looping over batch.messages
+    const queue = new MessageQueue(env);
+
+    await queue.process(batch);
   },
 };

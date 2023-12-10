@@ -37,7 +37,7 @@ export const userToIntegrationRelation = relations(user, ({ many }) => ({
 
 export async function getUserFromContext(c: Context): Promise<User | null> {
   const idCookie = new IdCookie(c);
-  const d1 = new D1(c);
+  const d1 = new D1(c.env.DB);
 
   const id = await idCookie.getId();
 
@@ -60,7 +60,7 @@ export async function getUserById(
   c: Context,
   id: string
 ): Promise<User | null> {
-  const d1 = new D1(c);
+  const d1 = new D1(c.env.DB);
 
   const firstUser = await d1.db.query.user.findFirst({
     where: eq(user.id, id),
@@ -78,7 +78,7 @@ export async function createUser(
   id: string,
   email: string
 ): Promise<{ id: string }> {
-  const d1 = new D1(c);
+  const d1 = new D1(c.env.DB);
 
   const createdUser = await d1.db
     .insert(user)

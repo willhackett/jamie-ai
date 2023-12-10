@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 
 import { IntegrationList } from '../view/integration-list';
 import { GoogleCalendarView } from '../view/integration/google-calendar';
-import { ICloudCalendarView } from '../view/integration/caldav';
+import { CalDavView } from '../view/integration/caldav';
 
 import * as integrations from '@/integration';
 
@@ -54,7 +54,7 @@ route.post('/:integrationId', async (c) => {
   );
 
   if (!integration) {
-    return c.text('Not Found', { status: 404 });
+    return c.text('Not Found222', { status: 404 });
   }
 
   const formData = await c.req.formData();
@@ -95,7 +95,7 @@ route.get('/:integrationId', async (c) => {
       );
     case 'caldav':
       return c.html(
-        <ICloudCalendarView
+        <CalDavView
           integration={integration as integrations.CalDavIntegration}
         />
       );

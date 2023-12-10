@@ -1,0 +1,1 @@
+ALTER TABLE schedule ADD `context` text NOT NULL;

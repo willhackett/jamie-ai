@@ -1,63 +1,136 @@
 class AESCrypto {
-  private static ivLength = 12;
+  private static textEncoder = new TextEncoder();
+  private static textDecoder = new TextDecoder();
 
-  static async importKey(envKey: string): Promise<CryptoKey> {
-    const rawKey = Uint8Array.from(atob(envKey), (c) => c.charCodeAt(0));
+  static async importKey(secret: string): Promise<CryptoKey> {
     return crypto.subtle.importKey(
       'raw',
-      rawKey,
-      { name: 'AES-GCM', length: 256 },
+      this.textEncoder.encode(secret),
+      'PBKDF2',
       false,
-      ['encrypt', 'decrypt']
+      ['deriveKey']
     );
   }
 
-  static async encrypt(text: string, key: CryptoKey): Promise<string> {
-    const iv = crypto.getRandomValues(new Uint8Array(AESCrypto.ivLength));
-    const encodedText = new TextEncoder().encode(text);
-
-    const encrypted = await crypto.subtle.encrypt(
+  static async deriveKey(
+    key: CryptoKey,
+    salt: Uint8Array,
+    usages: CryptoKey['usages'],
+    iterations: number = 10000
+  ): Promise<CryptoKey> {
+    return crypto.subtle.deriveKey(
       {
-        name: 'AES-GCM',
-        iv: iv,
+        name: 'PBKDF2',
+        salt,
+        iterations,
+        hash: 'SHA-256',
       },
       key,
-      encodedText
+      {
+        name: 'AES-GCM',
+        length: 256,
+      },
+      false,
+      usages
     );
-
-    const encryptedArray = new Uint8Array(encrypted);
-    const combined = new Uint8Array(iv.length + encryptedArray.length);
-    combined.set(iv);
-    combined.set(encryptedArray, iv.length);
-
-    const encryptedString = btoa(
-      new Uint8Array(combined.buffer).reduce(
-        (data, byte) => data + String.fromCharCode(byte),
-        ''
-      )
-    );
-
-    return encryptedString;
   }
 
-  static async decrypt(base64input: string, key: CryptoKey): Promise<string> {
-    const encrypted = Uint8Array.from(atob(base64input), (c) =>
-      c.charCodeAt(0)
-    );
+  static async encrypt(
+    data: string,
+    password: string,
+    iterations: number = 10000
+  ): Promise<string> {
+    try {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const passwordKey = await this.importKey(password);
+      const aesKey = await this.deriveKey(
+        passwordKey,
+        salt,
+        ['encrypt'],
+        iterations
+      );
+      const dataArr = this.textEncoder.encode(data);
 
-    const iv = new Uint8Array(encrypted, 0, AESCrypto.ivLength);
-    const encryptedData = new Uint8Array(encrypted, AESCrypto.ivLength);
+      const encryptedContent = await crypto.subtle.encrypt(
+        {
+          name: 'AES-GCM',
+          iv: iv,
+        },
+        aesKey,
+        dataArr
+      );
 
-    const decrypted = await crypto.subtle.decrypt(
-      {
-        name: 'AES-GCM',
-        iv: iv,
-      },
-      key,
-      encryptedData
-    );
+      const encryptedContentArr = new Uint8Array(encryptedContent);
+      let iterationsArr = new Uint8Array(
+        this.textEncoder.encode(iterations.toString())
+      );
 
-    return new TextDecoder().decode(decrypted);
+      let buff = new Uint8Array(
+        iterationsArr.byteLength +
+          salt.byteLength +
+          iv.byteLength +
+          encryptedContentArr.byteLength
+      );
+      let bytes = 0;
+      buff.set(iterationsArr, bytes);
+      buff.set(salt, (bytes += iterationsArr.byteLength));
+      buff.set(iv, (bytes += salt.byteLength));
+      buff.set(encryptedContentArr, (bytes += iv.byteLength));
+
+      const encryptedData = btoa(
+        String.fromCharCode.apply(null, Array.from(buff))
+      );
+
+      return encryptedData;
+    } catch (e: unknown) {
+      const error = e as Error;
+      throw new Error(`Error encrypting value: ${error.message}`);
+    }
+  }
+
+  static async decrypt(
+    encryptedData: string,
+    password: string
+  ): Promise<string> {
+    try {
+      const decodedEncryptedData = atob(encryptedData);
+      const encryptedDataBuff = new Uint8Array(
+        decodedEncryptedData.split('').map((char) => char.charCodeAt(0))
+      );
+
+      let bytes = 0;
+      const iterations = Number(
+        this.textDecoder.decode(encryptedDataBuff.slice(bytes, (bytes += 5)))
+      );
+
+      const salt = new Uint8Array(
+        encryptedDataBuff.slice(bytes, (bytes += 16))
+      );
+      const iv = new Uint8Array(encryptedDataBuff.slice(bytes, (bytes += 12)));
+      const data = new Uint8Array(encryptedDataBuff.slice(bytes));
+
+      const passwordKey = await this.importKey(password);
+      const aesKey = await this.deriveKey(
+        passwordKey,
+        salt,
+        ['decrypt'],
+        iterations
+      );
+      const decryptedContent = await crypto.subtle.decrypt(
+        {
+          name: 'AES-GCM',
+          iv: iv,
+        },
+        aesKey,
+        data
+      );
+
+      return this.textDecoder.decode(decryptedContent);
+    } catch (e: unknown) {
+      const error = e as Error;
+      throw new Error(`Error decrypting value: ${error.message}`);
+    }
   }
 }
 
