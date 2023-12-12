@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 
-import { Login } from '@/view/auth/login';
-import { OAuthOIDC } from '@/service/oauth-oidc';
-import { IdCookie } from '@/util/id-cookie';
-import type { Env } from '..';
+import { Login } from '@/controller/fetch/view/auth/login';
+import { OAuthOIDC } from '@/controller/fetch/service/oauth-oidc';
+import { IdCookie } from '@/controller/fetch/service/id-cookie';
+import type { Env } from '@/types';
 
 const route = new Hono<{ Bindings: Env }>();
 

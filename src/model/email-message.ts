@@ -22,6 +22,6 @@ export const emailMessage = sqliteTable('email_message', {
   inReplyTo: text('in_reply_to'),
 });
 
-export type EmailMessage = InferSelectModel<typeof emailMessage>;
+export type SelectEmailMessage = InferSelectModel<typeof emailMessage>;
 
 export type InsertEmailMessage = InferInsertModel<typeof emailMessage>;

@@ -1,4 +1,4 @@
-import { User, getUserFromContext } from '@/model';
+import { User, UserModel } from '@/model';
 import { D1, and, eq, schema } from '@/service/d1';
 import { Context } from 'hono';
 
@@ -18,6 +18,7 @@ abstract class CoreIntegration implements ICoreIntegration {
   public abstract description: string;
   protected c: Context;
   protected d1: D1;
+  protected userModel: UserModel;
 
   abstract handleUpdate(
     user: User | null,
@@ -36,6 +37,7 @@ abstract class CoreIntegration implements ICoreIntegration {
   constructor(c: Context) {
     this.c = c;
     this.d1 = new D1(c.env.DB);
+    this.userModel = new UserModel(this.d1);
   }
 
   /**
@@ -43,7 +45,7 @@ abstract class CoreIntegration implements ICoreIntegration {
    * @param c Hono Context
    */
   public async connect(formData: FormData): Promise<Response> {
-    const user = await getUserFromContext(this.c);
+    const user = await this.userModel.getUserFromContext(this.c);
 
     if (this.handleConnect) {
       return this.handleConnect(user, formData);
@@ -57,7 +59,7 @@ abstract class CoreIntegration implements ICoreIntegration {
    * @param c Hono Context
    */
   public async disconnect(): Promise<Response> {
-    const user = await getUserFromContext(this.c);
+    const user = await this.userModel.getUserFromContext(this.c);
 
     if (this.handleDisconnect) {
       return this.handleDisconnect(user);
@@ -71,7 +73,7 @@ abstract class CoreIntegration implements ICoreIntegration {
    * @param c Hono Context
    */
   public async update(formData: FormData): Promise<Response> {
-    const user = await getUserFromContext(this.c);
+    const user = await this.userModel.getUserFromContext(this.c);
 
     if (this.handleUpdate) {
       return this.handleUpdate(user, formData);
@@ -81,7 +83,7 @@ abstract class CoreIntegration implements ICoreIntegration {
   }
 
   public async isConnected(): Promise<boolean> {
-    const user = await getUserFromContext(this.c);
+    const user = await this.userModel.getUserFromContext(this.c);
 
     if (!user) {
       return false;
@@ -97,7 +99,7 @@ abstract class CoreIntegration implements ICoreIntegration {
   }
 
   public async callback(searchParams: URLSearchParams): Promise<Response> {
-    const user = await getUserFromContext(this.c);
+    const user = await this.userModel.getUserFromContext(this.c);
 
     if (this.handleCallback) {
       return this.handleCallback(user, searchParams);
@@ -107,7 +109,7 @@ abstract class CoreIntegration implements ICoreIntegration {
   }
 
   protected async storeConfig<CT>(config: CT) {
-    const user = await getUserFromContext(this.c);
+    const user = await this.userModel.getUserFromContext(this.c);
 
     if (!user) {
       throw new Error('User not found');
@@ -145,7 +147,7 @@ abstract class CoreIntegration implements ICoreIntegration {
   }
 
   protected async getConfig<CT>() {
-    const user = await getUserFromContext(this.c);
+    const user = await this.userModel.getUserFromContext(this.c);
 
     if (!user) {
       return null;
@@ -170,7 +172,7 @@ abstract class CoreIntegration implements ICoreIntegration {
   }
 
   protected async deleteConfig() {
-    const user = await getUserFromContext(this.c);
+    const user = await this.userModel.getUserFromContext(this.c);
 
     if (!user) {
       return null;

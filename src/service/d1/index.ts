@@ -1,7 +1,5 @@
 import { type DrizzleD1Database, drizzle } from 'drizzle-orm/d1';
 import * as schema from '@/model';
-import { type Context } from 'hono';
-import { type Env } from '@/types';
 export { createId } from '@paralleldrive/cuid2';
 
 export * as schema from '@/model';
@@ -18,12 +16,14 @@ export {
   gt,
   lte,
   gte,
+  not,
+  notInArray,
 } from 'drizzle-orm';
 
 export type Database = DrizzleD1Database<typeof schema>;
 
-export function db(c: Context) {
-  const db = drizzle(c.env.DB, {
+export function db(d1: D1Database) {
+  const db = drizzle(d1, {
     schema,
   });
 

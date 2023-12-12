@@ -36,6 +36,20 @@
       "when": 1701667327348,
       "tag": "0004_puzzling_wiccan",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1702268787802,
+      "tag": "0005_even_lionheart",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1702273865670,
+      "tag": "0006_broken_vanisher",
+      "breakpoints": true
     }
   ]
 }

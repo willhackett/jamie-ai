@@ -4,7 +4,7 @@ import { IntegrationList } from '../view/integration-list';
 import { GoogleCalendarView } from '../view/integration/google-calendar';
 import { CalDavView } from '../view/integration/caldav';
 
-import * as integrations from '@/integration';
+import * as integrations from '@/service';
 
 const route = new Hono();
 

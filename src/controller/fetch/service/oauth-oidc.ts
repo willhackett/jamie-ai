@@ -2,21 +2,26 @@ import { Context } from 'hono';
 import { Env } from '@/types';
 import { createId } from '@paralleldrive/cuid2';
 import { getSignedCookie, setSignedCookie } from 'hono/cookie';
-import { IdCookie } from '@/util/id-cookie';
+import { IdCookie } from '@/controller/fetch/service/id-cookie';
 import { JSONWebKeySet, createLocalJWKSet, jwtVerify } from 'jose';
-import { createUser, getUserById } from '@/model';
+import { UserModel } from '@/model';
+import { D1 } from '@/service/d1';
 
 class OAuthOIDC {
   protected clientId: string;
   protected clientSecret: string;
   protected issuerHostname: string;
   protected redirectUri: string;
+  protected userModel: UserModel;
 
   constructor(protected c: Context<{ Bindings: Env }>) {
     this.clientId = c.env.OAUTH_CLIENT_ID;
     this.clientSecret = c.env.OAUTH_CLIENT_SECRET;
     this.issuerHostname = c.env.OAUTH_ISSUER_HOSTNAME;
     this.redirectUri = c.env.OAUTH_REDIRECT_URI;
+
+    const d1 = new D1(c.env.DB);
+    this.userModel = new UserModel(d1);
   }
 
   public async authorize() {
@@ -163,7 +168,7 @@ class OAuthOIDC {
         return null;
       }
 
-      const existingUser = await getUserById(this.c, result.payload.sub);
+      const existingUser = await this.userModel.getUserById(result.payload.sub);
 
       if (existingUser) {
         return {
@@ -172,7 +177,7 @@ class OAuthOIDC {
         };
       }
 
-      await createUser(this.c, result.payload.sub, result.payload.email);
+      await this.userModel.createUser(result.payload.sub, result.payload.email);
 
       return {
         id: result.payload.sub,

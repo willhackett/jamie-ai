@@ -5,20 +5,25 @@
     "generate": "drizzle-kit generate:sqlite --schema=src/model/index.ts",
     "up": "drizzle-kit up:sqlite --schema=src/model/index.ts",
     "migrate": "wrangler d1 migrations apply jamie-ai --local",
+    "openai:deploy": "ts-node src/service/openai/deploy-assistant",
     "migrate:prod": "wrangler d1 migrations apply jamie-ai"
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
+    "@vespaiach/axios-fetch-adapter": "^0.3.1",
     "drizzle-orm": "^0.29.0",
     "fast-xml-parser": "^4.3.2",
     "hono": "^3.10.1",
     "ical": "^0.8.0",
-    "jose": "^5.1.1"
+    "jose": "^5.1.1",
+    "node-html-parser": "^6.1.11",
+    "openai": "^4.20.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230914.0",
     "@types/ical": "^0.8.3",
     "drizzle-kit": "^0.20.4",
+    "ts-node": "^10.9.2",
     "wrangler": "^3.15.0"
   }
 }

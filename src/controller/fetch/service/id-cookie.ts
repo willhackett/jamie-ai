@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import { getSignedCookie, setSignedCookie, deleteCookie } from 'hono/cookie';
-import type { Env } from '..';
+import type { Env } from '@/types';
 
 class IdCookie {
   private static readonly COOKIE_NAME = 'jai-id';
