@@ -1,6 +1,6 @@
 import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { D1, createId, lt, eq } from '@/service/d1';
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import { InferInsertModel, InferSelectModel, relations } from 'drizzle-orm';
 import { user } from './user';
 
 class ScheduleModel {
@@ -9,6 +9,9 @@ class ScheduleModel {
   public async getJobs() {
     const jobs = await this.d1.db.query.schedule.findMany({
       where: lt(schedule.runAt, new Date()),
+      with: {
+        user: true,
+      },
     });
 
     return jobs;
@@ -48,6 +51,14 @@ export const schedule = sqliteTable('schedule', {
   context: text('context').notNull(),
   runAt: int('run_at', { mode: 'timestamp' }).notNull(),
 });
+
+export const scheduleRelation = relations(schedule, ({ one }) => ({
+  user: one(user, {
+    fields: [schedule.userId],
+    references: [user.id],
+    relationName: 'user',
+  }),
+}));
 
 export type Schedule = InferSelectModel<typeof schedule>;
 

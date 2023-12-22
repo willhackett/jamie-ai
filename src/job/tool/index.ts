@@ -25,7 +25,7 @@ export interface InvokeToolEventBody {
 }
 
 export interface InvokeToolEvent {
-  type: 'invoke_function';
+  type: 'invoke_tool';
   body: InvokeToolEventBody;
 }
 
