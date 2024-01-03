@@ -4,12 +4,14 @@ import { D1 } from '@/service/d1';
 import type { OpenAiClient } from '@/service/openai';
 import { OpenAiThread } from '@/service/openai/thread';
 import { InvokeFunction } from '../tool';
+import { Env } from '@/types';
 
 class CheckRun {
   constructor(
     protected d1: D1,
     protected client: OpenAiClient,
-    protected queue: Queue
+    protected queue: Queue,
+    protected env: Env
   ) {}
 
   public async run() {
