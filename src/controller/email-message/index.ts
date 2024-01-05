@@ -1,76 +1,26 @@
 import { SelectEmailMessage } from '@/model';
 import { D1, eq, schema } from '@/service/d1';
-import { Env } from '@/types';
+import { Env, PostmarkWebHook } from '@/types';
 import { EmailUtil } from '@/util/email';
 
-interface HandleEmailMessagePayload {
-  to: string[];
-  from: string;
-  cc?: string[];
-  bcc?: string[];
-  inReplyTo?: string;
-  references?: string;
-  subject: string;
-  messageId: string;
-  text?: string;
-  html?: string;
-  formerMessage?: SelectEmailMessage;
-  userId: string;
-}
-
 class EmailMessageController {
-  static init(message: ForwardableEmailMessage, env: Env) {
-    const emailMessage = new EmailMessageController(env);
-
-    return emailMessage.process(message);
-  }
-
   d1: D1;
 
   constructor(protected env: Env) {
     this.d1 = new D1(env.DB);
   }
 
-  public async process(body: ForwardableEmailMessage) {
-    const to = body.headers.get('To');
-    const from = body.headers.get('From');
-    const cc = body.headers.get('Cc');
-    const inReplyTo = body.headers.get('In-Reply-To') ?? undefined;
-    const references = body.headers.get('References') ?? undefined;
-    const subject = body.headers.get('Subject');
-    const messageId = body.headers.get('Message-ID');
+  public async process(message: PostmarkWebHook) {
+    const inReplyToHeader = message.Headers.find((header) => {
+      return header.Name === 'In-Reply-To';
+    });
+    const from = message.FromFull.Email;
 
-    if (!subject || !messageId || !from || !to) {
-      return;
-    }
-
-    const bodyArrBuff = await body.raw.getReader().read();
-    const html = new TextDecoder().decode(bodyArrBuff.value);
-
-    const dom = EmailUtil.getBody(html);
-    const text = EmailUtil.getPlainTextFromBody(dom);
-
-    const message = {
-      to: EmailUtil.recipientListToArray(to),
-      from,
-      cc: cc ? EmailUtil.recipientListToArray(cc) : undefined,
-      inReplyTo,
-      references,
-      subject,
-      messageId,
-      text,
-      html,
-    };
-
-    if (inReplyTo) {
-      const formerMessage = await this.checkForReply(inReplyTo);
+    if (inReplyToHeader) {
+      const formerMessage = await this.checkForReply(inReplyToHeader.Value);
 
       if (formerMessage) {
-        return this.handleReply({
-          ...message,
-          formerMessage,
-          userId: formerMessage.userId,
-        });
+        return this.handleReply(formerMessage, message);
       }
     }
 
@@ -80,10 +30,10 @@ class EmailMessageController {
       return this.handleNewMessage({ ...message, userId: user.id });
     }
 
-    // Do nothing
+    // If the message is not from a user, we can't do anything with it
   }
 
-  private async saveNewMessage(payload: HandleEmailMessagePayload) {
+  private async saveNewMessage(payload: PostmarkWebHook) {
     const user = await this.checkIfFromUser(payload.from);
 
     if (!user) {
@@ -106,23 +56,23 @@ class EmailMessageController {
       .get();
   }
 
-  private async handleReply(payload: HandleEmailMessagePayload) {}
+  private async handleReply(
+    formerMessage: SelectEmailMessage,
+    message: PostmarkWebHook
+  ) {
+    await this.saveNewMessage(message);
 
-  private async handleNewMessage(payload: HandleEmailMessagePayload) {
-    await this.d1.db
-      .insert(schema.emailMessage)
-      .values({
-        to: payload.to,
-        inReplyTo: payload.inReplyTo,
-        subject: payload.subject,
-        messageId: payload.messageId,
-        text: payload.text,
-        html: payload.html,
-        from: payload.from,
-        userId: '',
-      })
-      .returning({ id: schema.emailMessage.id })
-      .get();
+    // extract the reply portion only
+
+    // send to OpenAI
+  }
+
+  private async handleNewMessage(payload: PostmarkWebHook) {
+    await this.saveNewMessage(payload);
+
+    // extract the reply portion only
+
+    // send to OpenAI
   }
 
   private async checkForReply(

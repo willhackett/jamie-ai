@@ -16,3 +16,32 @@ export type Env = {
 };
 
 export type AppContext = Context<{ Bindings: Env }>;
+
+export type PostmarkWebHook = {
+  FromFull: {
+    Email: string;
+    Name: string;
+  };
+  To: string;
+  ToFull: {
+    Email: string;
+    Name: string;
+  }[];
+  Cc: string;
+  CcFull: {
+    Email: string;
+    Name: string;
+  }[];
+  Subject: string;
+  MessageID: string;
+  ReplyTo: string;
+  MailboxHash: string;
+  Date: string;
+  TextBody: string;
+  StrippedTextReply: string;
+  Tag: string;
+  Headers: {
+    Name: string;
+    Value: string;
+  }[];
+};

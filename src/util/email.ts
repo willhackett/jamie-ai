@@ -13,6 +13,36 @@ export class EmailUtil {
     return text;
   }
 
+  static getBodyWithoutQuotedReply(body: HTMLElement) {
+    const selectors = [
+      'div.gmail_extra', // Gmail
+      'div.OutlookMessageHeader', // Outlook
+      'div.OutlookMessageBody', // Outlook
+      'div.yahoo_quoted', // Yahoo
+    ];
+
+    for (const selector of selectors) {
+      const reply = body.querySelector(selector);
+      if (reply) {
+        reply.remove();
+        break;
+      }
+    }
+
+    // Apple Mail uses 'blockquote' for quoted replies
+    const blockquotes = body.querySelectorAll('blockquote');
+    if (blockquotes.length > 0) {
+      const parentBlockquotes = blockquotes.filter(
+        (blockquote) => blockquote.parentNode === body
+      );
+      if (parentBlockquotes.length > 0) {
+        parentBlockquotes[parentBlockquotes.length - 1].remove();
+      }
+    }
+
+    return body;
+  }
+
   static recipientListToArray(recipients: string): string[] {
     const list = recipients.split(',');
     const result = [];
