@@ -12,16 +12,18 @@ export type QueueControllerEvent = InvokeToolEvent | WakeScheduleEvent;
 class QueueController {
   protected openAiClient: OpenAiClient;
   protected d1: D1;
+  protected queue: Queue;
 
   public static init(batch: MessageBatch<QueueControllerEvent>, env: Env) {
-    const queue = new QueueController(env.QUEUE, env);
+    const queue = new QueueController(env);
 
     return queue.process(batch);
   }
 
-  constructor(protected queue: Queue, protected env: Env) {
+  constructor(protected env: Env) {
     this.openAiClient = new OpenAiClient(env);
     this.d1 = new D1(env.DB);
+    this.queue = env.QUEUE;
   }
 
   public dispatch(message: QueueControllerEvent) {

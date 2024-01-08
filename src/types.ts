@@ -18,6 +18,7 @@ export type Env = {
 export type AppContext = Context<{ Bindings: Env }>;
 
 export type PostmarkWebHook = {
+  From: string;
   FromFull: {
     Email: string;
     Name: string;
